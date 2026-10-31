@@ -33,7 +33,7 @@
     }
     .step-pill.active {
       transform: scale(1.04);
-      box-shadow: 0 0 20px rgba(250, 204, 21, 0.45);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.45);
     }
 
     /* ボタンを押したときのフィードバック */
@@ -44,22 +44,22 @@
 </head>
 <body class="flex flex-col justify-between w-screen h-screen overflow-hidden">
 
-  <!-- 上部ヘッダー：タイトルと現在のステップ説明（大きく見やすい文字） -->
-  <header class="w-full bg-slate-900/95 border-b-2 border-slate-700 px-6 py-3 flex items-center justify-between shrink-0 z-10 shadow-lg">
+  <!-- 上部ヘッダー（文字表示がONのときだけ解説バナーを表示） -->
+  <header id="headerBar" class="w-full bg-slate-900/95 border-b-2 border-slate-800 px-6 py-2.5 flex items-center justify-between shrink-0 z-10 shadow-lg min-h-[68px]">
     <div class="flex items-center gap-4">
-      <div class="bg-amber-400 text-slate-950 font-black px-4 py-1.5 rounded-xl text-xl md:text-2xl tracking-wider shadow">
+      <div class="bg-amber-400 text-slate-950 font-black px-3.5 py-1 rounded-xl text-lg md:text-xl tracking-wider shadow">
         中1理科
       </div>
-      <h1 class="text-2xl md:text-3xl font-black tracking-tight text-white">
+      <h1 class="text-xl md:text-2xl font-black tracking-tight text-slate-200">
         鏡に映る「像」のでき方
       </h1>
     </div>
 
-    <!-- 現在の状態メッセージボックス -->
-    <div id="statusBanner" class="flex items-center gap-3 bg-slate-800 border-2 border-amber-400/80 px-6 py-2 rounded-2xl shadow-inner">
-      <span id="statusIcon" class="text-2xl md:text-3xl">💡</span>
-      <p id="statusText" class="text-xl md:text-2xl font-bold text-amber-300 tracking-wide">
-        光源を動かして、像ができる位置を調べよう！
+    <!-- 現在の状態メッセージボックス（デフォルトは非表示） -->
+    <div id="statusBanner" class="hidden items-center gap-3 bg-slate-800 border-2 border-amber-400/80 px-5 py-1.5 rounded-2xl shadow-inner">
+      <span id="statusIcon" class="text-2xl">💡</span>
+      <p id="statusText" class="text-lg md:text-xl font-bold text-amber-300 tracking-wide">
+        「光を出す」ボタンを押して、光の進み方を見てみよう
       </p>
     </div>
   </header>
@@ -67,59 +67,60 @@
   <!-- 中央メインキャンバス領域（1画面に収まるよう残り高さを100%使用） -->
   <main class="relative flex-1 w-full h-full overflow-hidden bg-slate-950">
     <canvas id="simCanvas" class="w-full h-full block"></canvas>
-
-    <!-- 左上の操作ヒントバッジ -->
-    <div class="pointer-events-none absolute top-4 left-4 bg-slate-900/85 border border-slate-600 px-5 py-2.5 rounded-2xl backdrop-blur-sm shadow-lg flex items-center gap-3">
-      <span class="inline-block w-4 h-4 rounded-full bg-amber-400 animate-ping"></span>
-      <span class="text-lg md:text-xl font-bold text-slate-100">
-        左側の「光源」を指で動かしてみよう
-      </span>
-    </div>
   </main>
 
-  <!-- 下部コントロールバー：iPadで押しやすい特大ボタンとステップ表示 -->
-  <footer class="w-full bg-slate-900 border-t-2 border-slate-700 px-6 py-3 flex items-center justify-between gap-4 shrink-0 z-10">
+  <!-- 下部コントロールバー：iPadで押しやすい特大ボタン -->
+  <footer class="w-full bg-slate-900 border-t-2 border-slate-800 px-6 py-3 flex items-center justify-between gap-4 shrink-0 z-10">
     
-    <!-- 左：アニメーション再生ボタン -->
+    <!-- 左：光源から光を出すボタン ＆ 光を消すボタン -->
     <div class="flex items-center gap-3">
-      <button id="playBtn" class="btn-touch flex items-center gap-3 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-xl md:text-2xl px-7 py-3 rounded-2xl shadow-lg border-2 border-amber-200 cursor-pointer">
-        <span id="playIcon" class="text-2xl">▶</span>
-        <span id="playLabel">光の進み方を最初から見る</span>
+      <button id="emitLightBtn" class="btn-touch flex items-center gap-3 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-xl md:text-2xl px-7 py-3 rounded-2xl shadow-lg border-2 border-amber-200 cursor-pointer">
+        <span id="emitIcon" class="text-2xl">💡</span>
+        <span id="emitLabel">光源から光を出す</span>
+      </button>
+
+      <button id="clearLightBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-slate-300 border-2 border-slate-600 font-bold text-lg md:text-xl px-5 py-3 rounded-2xl shadow cursor-pointer">
+        光を消す
       </button>
     </div>
 
-    <!-- 中央：4ステップ進行インジケーター（タップしてその段階を見ることも可能） -->
-    <div class="hidden lg:flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700">
-      <button data-step="1" class="step-pill btn-touch px-4 py-2 rounded-xl font-bold text-lg text-slate-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="bg-slate-700 text-amber-300 px-2 py-0.5 rounded-lg text-base">1</span>
-        <span>鏡へ進む</span>
+    <!-- 中央：4ステップ進行ボタン（文字表示がONのとき、または段階確認用に利用可能） -->
+    <div id="stepBar" class="hidden xl:flex items-center gap-1.5 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700">
+      <button data-step="1" class="step-pill btn-touch px-3.5 py-2 rounded-xl font-bold text-base text-slate-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="bg-slate-700 text-amber-300 px-2 py-0.5 rounded-lg text-sm">1</span>
+        <span>鏡へ</span>
       </button>
-      <span class="text-slate-500 font-black">▶</span>
-      <button data-step="2" class="step-pill btn-touch px-4 py-2 rounded-xl font-bold text-lg text-slate-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="bg-slate-700 text-amber-300 px-2 py-0.5 rounded-lg text-base">2</span>
-        <span>反射して目へ</span>
+      <span class="text-slate-600 font-black">▶</span>
+      <button data-step="2" class="step-pill btn-touch px-3.5 py-2 rounded-xl font-bold text-base text-slate-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="bg-slate-700 text-amber-300 px-2 py-0.5 rounded-lg text-sm">2</span>
+        <span>反射</span>
       </button>
-      <span class="text-slate-500 font-black">▶</span>
-      <button data-step="3" class="step-pill btn-touch px-4 py-2 rounded-xl font-bold text-lg text-slate-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="bg-slate-700 text-cyan-300 px-2 py-0.5 rounded-lg text-base">3</span>
-        <span>光の延長線</span>
+      <span class="text-slate-600 font-black">▶</span>
+      <button data-step="3" class="step-pill btn-touch px-3.5 py-2 rounded-xl font-bold text-base text-slate-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="bg-slate-700 text-cyan-300 px-2 py-0.5 rounded-lg text-sm">3</span>
+        <span>延長線</span>
       </button>
-      <span class="text-slate-500 font-black">▶</span>
-      <button data-step="4" class="step-pill btn-touch px-4 py-2 rounded-xl font-bold text-lg text-slate-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="bg-slate-700 text-pink-300 px-2 py-0.5 rounded-lg text-base">4</span>
-        <span>対称の位置に像</span>
+      <span class="text-slate-600 font-black">▶</span>
+      <button data-step="4" class="step-pill btn-touch px-3.5 py-2 rounded-xl font-bold text-base text-slate-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="bg-slate-700 text-pink-300 px-2 py-0.5 rounded-lg text-sm">4</span>
+        <span>像の位置</span>
       </button>
     </div>
 
-    <!-- 右：補助表示の切り替えとリセット -->
+    <!-- 右：文字表示のON/OFF切り替え ＆ 対称距離の切り替え ＆ リセット -->
     <div class="flex items-center gap-3">
-      <button id="toggleSymmetryBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-cyan-300 border-2 border-cyan-500/60 font-bold text-lg md:text-xl px-5 py-3 rounded-2xl shadow cursor-pointer flex items-center gap-2">
-        <span id="symCheck">☑</span>
-        <span>対称の距離を表示</span>
+      <button id="toggleTextBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-slate-300 border-2 border-slate-600 font-bold text-lg md:text-xl px-5 py-3 rounded-2xl shadow cursor-pointer flex items-center gap-2">
+        <span id="textCheck">☐</span>
+        <span>文字・解説を表示</span>
       </button>
 
-      <button id="resetBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-slate-200 border-2 border-slate-600 font-bold text-lg md:text-xl px-5 py-3 rounded-2xl shadow cursor-pointer">
-        元の位置に戻す
+      <button id="toggleSymmetryBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-slate-300 border-2 border-slate-600 font-bold text-lg md:text-xl px-5 py-3 rounded-2xl shadow cursor-pointer flex items-center gap-2">
+        <span id="symCheck">☐</span>
+        <span>対称の線を引く</span>
+      </button>
+
+      <button id="resetBtn" class="btn-touch bg-slate-800 hover:bg-slate-700 text-slate-300 border-2 border-slate-600 font-bold text-lg md:text-xl px-4 py-3 rounded-2xl shadow cursor-pointer" title="光源の位置を最初に戻します">
+        位置リセット
       </button>
     </div>
   </footer>
@@ -127,17 +128,23 @@
   <script>
     /**
      * 中1理科：鏡に映る像のでき方シミュレーター
-     * 光源 → 鏡で反射 → 目に入る → 延長線（点線）が伸びる → 対称の位置に像ができる
+     * ・デフォルトでは文字は非表示（先生の解説や生徒の気づきを妨げない）
+     * ・デフォルトでは光源から光は出ていない（ボタンを押すか光源をタップするとゆっくり光が出る）
+     * ・文字を表示した際も、光の道筋（入射光・反射光・延長線）に一切重ならない外側に配置
      */
     const canvas = document.getElementById('simCanvas');
     const ctx = canvas.getContext('2d');
 
     // UI要素
+    const statusBanner = document.getElementById('statusBanner');
     const statusIcon = document.getElementById('statusIcon');
     const statusText = document.getElementById('statusText');
-    const playBtn = document.getElementById('playBtn');
-    const playIcon = document.getElementById('playIcon');
-    const playLabel = document.getElementById('playLabel');
+    const emitLightBtn = document.getElementById('emitLightBtn');
+    const emitIcon = document.getElementById('emitIcon');
+    const emitLabel = document.getElementById('emitLabel');
+    const clearLightBtn = document.getElementById('clearLightBtn');
+    const toggleTextBtn = document.getElementById('toggleTextBtn');
+    const textCheck = document.getElementById('textCheck');
     const toggleSymmetryBtn = document.getElementById('toggleSymmetryBtn');
     const symCheck = document.getElementById('symCheck');
     const resetBtn = document.getElementById('resetBtn');
@@ -147,36 +154,34 @@
     let width = 0;
     let height = 0;
     let mirrorX = 0;
-    let gridSize = 60; // 方眼1マスのサイズ（画面サイズに応じて自動調整）
+    let gridSize = 60;
 
-    // 光源の位置（鏡からの相対座標で保持し、リサイズ時も比率を維持）
-    // mirrorX を基準に、左側がマイナス、右側がプラス
-    let sourceRelX = -210; // 鏡から左へ3.5マス分
-    let sourceRelY = -120; // 中央より上
-
-    // 目の位置（鏡の左側・下方に配置）
+    // 光源と目の位置（鏡からの相対座標）
+    let sourceRelX = -210;
+    let sourceRelY = -120;
     let eyeRelX = -240;
     let eyeRelY = 165;
 
-    // ドラッグ状態管理
+    // ドラッグ・タップ判定用
     let isDraggingSource = false;
+    let pointerDownX = 0;
+    let pointerDownY = 0;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
     let hoverSource = false;
 
-    // アニメーション状態管理
-    // progress: 0.0 〜 1.0
-    //   0.00 〜 0.25 : Step 1 (光源から鏡へ光が進む)
-    //   0.25 〜 0.50 : Step 2 (鏡で反射して目に届く)
-    //   0.50 〜 0.80 : Step 3 (目から鏡の奥へ点線の延長線が伸びる)
-    //   0.80 〜 1.00 : Step 4 (光源と対称の位置に像が現れる)
-    let animProgress = 0;
-    let isAnimatingProcess = true;
-    let animSpeed = 0.0042; // 約4秒で1サイクル完了する見やすい速度
-    let pulseTime = 0;      // 完了後に光線の上を流れる光の粒アニメーション用
-    let showSymmetryGuide = true; // 対称の距離ガイド表示フラグ
+    // 表示・アニメーション状態管理（デフォルトは光も文字もOFF）
+    let isLightActive = false;       // 光源から光が出ているかどうか
+    let animProgress = 0;            // 0.0 〜 1.0
+    let isAnimatingProcess = false;  // 光が伸びている最中かどうか
+    // 光の進むスピード：じっくり観察・解説できるようゆっくりに設定（約11〜12秒で完了）
+    const animSpeed = 0.0014;
+    let pulseTime = 0;               // 完了後のゆっくりした光の粒の移動用
 
-    // 初期位置の設定とリサイズ処理
+    let showLabels = false;          // 文字・解説表示（デフォルトOFF）
+    let showSymmetryGuide = false;   // 対称の補助線表示（デフォルトOFF）
+
+    // キャンバスリサイズ処理
     function resizeCanvas() {
       const rect = canvas.parentElement.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
@@ -188,10 +193,8 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       mirrorX = Math.round(width / 2);
-      // 画面の高さ・幅に合わせて方眼サイズを見やすく調整（片側に7〜8マス入るように）
       gridSize = Math.max(48, Math.min(72, Math.floor((width / 2) / 7.5)));
 
-      // 初回または画面外にはみ出さないようクランプ
       clampPositions();
     }
 
@@ -204,21 +207,36 @@
     }
 
     function clampPositions() {
-      const minX = -mirrorX + 90;
-      const maxX = -gridSize * 1.2; // 鏡に近づきすぎないように制限
-      const minY = -height / 2 + 85;
-      const maxY = height / 2 - 150; // 目の位置より上側を中心に広く動けるようにする
+      const minX = -mirrorX + 100;
+      const maxX = -gridSize * 1.2;
+      const minY = -height / 2 + 95;
+      const maxY = height / 2 - 150;
 
       sourceRelX = Math.max(minX, Math.min(maxX, sourceRelX));
       sourceRelY = Math.max(minY, Math.min(maxY, sourceRelY));
 
-      // 目の位置も画面サイズに合わせて固定配置
       eyeRelX = Math.max(-mirrorX + 120, -gridSize * 4.2);
-      eyeRelY = Math.min(height / 2 - 75, gridSize * 2.5);
+      eyeRelY = Math.min(height / 2 - 80, gridSize * 2.5);
     }
 
-    // ステータス表示とステップボタンのハイライト更新
+    // ステータス表示とボタン状態の更新
     function updateStatusUI() {
+      // ステップボタンのハイライトクリア
+      stepButtons.forEach(btn => {
+        btn.classList.remove('active', 'bg-slate-700', 'border', 'border-amber-400');
+      });
+
+      if (!isLightActive) {
+        statusIcon.textContent = '💡';
+        statusText.textContent = '「光源から光を出す」ボタンを押すか、光源をタップしてみよう';
+        emitIcon.textContent = '💡';
+        emitLabel.textContent = '光源から光を出す';
+        return;
+      }
+
+      emitIcon.textContent = '🔄';
+      emitLabel.textContent = 'もう一度光を出す';
+
       let currentStep = 4;
       if (animProgress < 0.25) {
         currentStep = 1;
@@ -238,24 +256,29 @@
         statusText.textContent = '④ 延長線上の、光源と「対称の位置」に像が映って見えます！';
       }
 
-      // ステップピルのハイライト
       stepButtons.forEach(btn => {
         const step = parseInt(btn.getAttribute('data-step'), 10);
         if (step === currentStep) {
           btn.classList.add('active', 'bg-slate-700', 'border', 'border-amber-400');
-        } else {
-          btn.classList.remove('active', 'bg-slate-700', 'border', 'border-amber-400');
         }
       });
+    }
 
-      // 再生ボタンのラベル切り替え
-      if (isAnimatingProcess && animProgress < 1.0) {
-        playIcon.textContent = '🔄';
-        playLabel.textContent = '最初から再生する';
-      } else {
-        playIcon.textContent = '▶';
-        playLabel.textContent = '光の進み方を最初から見る';
-      }
+    // 光を最初から出す関数
+    function startLightAnimation() {
+      isLightActive = true;
+      animProgress = 0.0;
+      isAnimatingProcess = true;
+      pulseTime = 0;
+      updateStatusUI();
+    }
+
+    // 光を消す関数
+    function clearLight() {
+      isLightActive = false;
+      animProgress = 0.0;
+      isAnimatingProcess = false;
+      updateStatusUI();
     }
 
     // ==========================================
@@ -270,30 +293,26 @@
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, mirrorX, height);
 
-      // 右側：鏡の奥の世界（虚像ができる空間）
+      // 右側：鏡の奥の世界
       ctx.fillStyle = '#131c38';
       ctx.fillRect(mirrorX, 0, width - mirrorX, height);
 
       // 方眼の描画（鏡の位置 mirrorX と 画面中央 centerY を基準に対称に引く）
       ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.15)';
 
-      // 縦線（鏡から左右に対称）
       for (let offset = gridSize; offset < width / 2; offset += gridSize) {
-        // 左側
         ctx.beginPath();
         ctx.moveTo(mirrorX - offset, 0);
         ctx.lineTo(mirrorX - offset, height);
         ctx.stroke();
 
-        // 右側
         ctx.beginPath();
         ctx.moveTo(mirrorX + offset, 0);
         ctx.lineTo(mirrorX + offset, height);
         ctx.stroke();
       }
 
-      // 横線（中央から上下に対称）
       for (let offset = 0; offset < height / 2; offset += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, centerY - offset);
@@ -308,18 +327,20 @@
         }
       }
 
-      // エリアラベル（手前 / 鏡の奥）
-      ctx.font = 'bold 22px "Noto Sans JP", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
-      ctx.fillText('実際の世界（鏡の手前）', mirrorX / 2, height - 22);
-      ctx.fillText('鏡の奥の世界', mirrorX + (width - mirrorX) / 2, height - 22);
+      // エリアラベル（文字表示ONのときのみ、画面最下部の邪魔にならない位置に表示）
+      if (showLabels) {
+        ctx.font = 'bold 20px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+        ctx.fillText('鏡の手前（実際の世界）', mirrorX / 2, height - 18);
+        ctx.fillText('鏡の奥の世界', mirrorX + (width - mirrorX) / 2, height - 18);
+      }
     }
 
     // 中央の鏡の描画
     function drawMirror() {
-      const topY = 25;
-      const bottomY = height - 25;
+      const topY = 24;
+      const bottomY = height - 24;
 
       // 鏡の裏側を表す斜線（ハッチング）
       ctx.strokeStyle = '#64748b';
@@ -332,12 +353,12 @@
         ctx.stroke();
       }
 
-      // 鏡本体の輝くライン
+      // 鏡本体のライン
       ctx.save();
       ctx.shadowColor = '#38bdf8';
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 10;
       ctx.strokeStyle = '#e0f2fe';
-      ctx.lineWidth = 7;
+      ctx.lineWidth = 6;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(mirrorX, topY);
@@ -353,26 +374,28 @@
       ctx.lineTo(mirrorX - 2, bottomY);
       ctx.stroke();
 
-      // 「鏡」ラベル
-      drawBadge(mirrorX, 42, '鏡（かがみ）', '#0284c7', '#ffffff', 24);
+      // 「鏡」ラベル（文字表示ONのときのみ、上端の邪魔にならない位置に表示）
+      if (showLabels) {
+        drawBadge(mirrorX, 34, '鏡', '#0284c7', '#ffffff', 20);
+      }
     }
 
-    // 角丸の背景付きテキストバッジを描画する関数（文字を大きく読みやすく）
-    function drawBadge(x, y, text, bgColor, textColor, fontSize = 22, borderColor = 'rgba(255,255,255,0.25)') {
+    // 角丸の背景付きテキストバッジを描画する関数
+    function drawBadge(x, y, text, bgColor, textColor, fontSize = 20, borderColor = 'rgba(255,255,255,0.25)') {
       ctx.save();
       ctx.font = `900 ${fontSize}px "Noto Sans JP", sans-serif`;
       const metrics = ctx.measureText(text);
-      const padX = 16;
-      const padY = 10;
+      const padX = 14;
+      const padY = 8;
       const boxW = metrics.width + padX * 2;
       const boxH = fontSize + padY * 2;
 
       ctx.fillStyle = bgColor;
       ctx.strokeStyle = borderColor;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 12);
+      ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 10);
       ctx.fill();
       ctx.stroke();
 
@@ -410,7 +433,7 @@
       ctx.save();
       ctx.globalAlpha = alpha;
 
-      // 1. 光源と像を結ぶ水平な補助線
+      // 1. 光源と像を結ぶ水平な補助線（光線は下側を通るため、この水平線は光線と重ならない）
       ctx.strokeStyle = '#22d3ee';
       ctx.lineWidth = 3;
       ctx.setLineDash([8, 8]);
@@ -430,22 +453,13 @@
       ctx.lineTo(mirrorX, sy - rightAngleSize);
       ctx.stroke();
 
-      // 3. 鏡からの距離（マス目換算）を計算して表示
-      const distGrid = Math.abs(mirrorX - sx) / gridSize;
-      const distText = `鏡から ${distGrid.toFixed(1)} マス`;
-
-      // 左右の矢印付き寸法ライン（光源と像の上側に配置）
-      const dimY = sy - 58;
-      if (dimY > 75) {
-        // 左側：光源〜鏡
-        drawDimensionArrow(sx, dimY, mirrorX - 4, dimY, '#38bdf8', `同じ距離（${distText}）`);
-        // 右側：鏡〜像
-        drawDimensionArrow(mirrorX + 4, dimY, ix, dimY, '#f472b6', `同じ距離（${distText}）`);
-      } else {
-        // 画面上端に近い場合は下側に表示
-        const dimYBottom = sy + 68;
-        drawDimensionArrow(sx, dimYBottom, mirrorX - 4, dimYBottom, '#38bdf8', `同じ距離（${distText}）`);
-        drawDimensionArrow(mirrorX + 4, dimYBottom, ix, dimYBottom, '#f472b6', `同じ距離（${distText}）`);
+      // 3. 文字表示がONのときのみ、光線から離れた上側に距離ラベルを表示
+      if (showLabels) {
+        const distGrid = Math.abs(mirrorX - sx) / gridSize;
+        const distText = `同じ距離（${distGrid.toFixed(1)}マス）`;
+        const dimY = Math.max(72, sy - 64);
+        drawDimensionArrow(sx, dimY, mirrorX - 6, dimY, '#38bdf8', distText);
+        drawDimensionArrow(mirrorX + 6, dimY, ix, dimY, '#f472b6', distText);
       }
 
       ctx.restore();
@@ -458,40 +472,21 @@
       ctx.save();
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
 
-      // 横線
       ctx.beginPath();
       ctx.moveTo(x1 + 6, y1);
       ctx.lineTo(x2 - 6, y2);
       ctx.stroke();
 
-      // 両端の縦ストッパー
       ctx.beginPath();
-      ctx.moveTo(x1, y1 - 10);
-      ctx.lineTo(x1, y1 + 10);
-      ctx.moveTo(x2, y2 - 10);
-      ctx.lineTo(x2, y2 + 10);
+      ctx.moveTo(x1, y1 - 8);
+      ctx.lineTo(x1, y1 + 8);
+      ctx.moveTo(x2, y2 - 8);
+      ctx.lineTo(x2, y2 + 8);
       ctx.stroke();
 
-      // 左矢印
-      ctx.beginPath();
-      ctx.moveTo(x1 + 2, y1);
-      ctx.lineTo(x1 + 14, y1 - 7);
-      ctx.lineTo(x1 + 14, y1 + 7);
-      ctx.closePath();
-      ctx.fill();
-
-      // 右矢印
-      ctx.beginPath();
-      ctx.moveTo(x2 - 2, y2);
-      ctx.lineTo(x2 - 14, y2 - 7);
-      ctx.lineTo(x2 - 14, y2 + 7);
-      ctx.closePath();
-      ctx.fill();
-
-      // 距離ラベル
-      drawBadge(midX, y1, label, '#0f172a', color, 19, color);
+      drawBadge(midX, y1, label, '#0f172a', color, 17, color);
       ctx.restore();
     }
 
@@ -499,94 +494,101 @@
     function drawLightSource(x, y, isHoveredOrDragged) {
       ctx.save();
 
-      // ドラッグ可能を示す外周ガイドリング
-      const ringRadius = isHoveredOrDragged ? 52 : 44;
-      ctx.strokeStyle = isHoveredOrDragged ? '#fde047' : 'rgba(250, 204, 21, 0.5)';
-      ctx.lineWidth = isHoveredOrDragged ? 4 : 2.5;
+      // ドラッグ可能を示す外周リング
+      const ringRadius = isHoveredOrDragged ? 48 : 40;
+      ctx.strokeStyle = isHoveredOrDragged ? '#fde047' : 'rgba(250, 204, 21, 0.45)';
+      ctx.lineWidth = isHoveredOrDragged ? 3.5 : 2;
       ctx.setLineDash([6, 6]);
       ctx.beginPath();
       ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // 後光（グロー）
-      const grad = ctx.createRadialGradient(x, y, 6, x, y, 54);
-      grad.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
-      grad.addColorStop(0.45, 'rgba(250, 204, 21, 0.45)');
-      grad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      // 光が出ているときは明るいグロー、消えているときは控えめなグロー
+      const glowRadius = isLightActive ? 54 : 32;
+      const grad = ctx.createRadialGradient(x, y, 5, x, y, glowRadius);
+      if (isLightActive) {
+        grad.addColorStop(0, 'rgba(254, 240, 138, 0.95)');
+        grad.addColorStop(0.45, 'rgba(250, 204, 21, 0.45)');
+        grad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      } else {
+        grad.addColorStop(0, 'rgba(254, 240, 138, 0.4)');
+        grad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      }
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(x, y, 54, 0, Math.PI * 2);
+      ctx.arc(x, y, glowRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      // 電球のソケット下部
+      // 電球のソケット（光線が下に出るのを邪魔しないよう上向きソケットまたはシンプル球体に配置）
       ctx.fillStyle = '#94a3b8';
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(x - 12, y + 16, 24, 14, 4);
+      ctx.roundRect(x - 11, y - 30, 22, 12, 4);
       ctx.fill();
       ctx.stroke();
 
-      // 電球ガラス球体（中心 x, y が光の出発点）
-      ctx.fillStyle = '#fef08a';
+      // 電球ガラス球体
+      ctx.fillStyle = isLightActive ? '#fef08a' : '#fde047';
       ctx.strokeStyle = '#f59e0b';
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.arc(x, y, 24, 0, Math.PI * 2);
+      ctx.arc(x, y, 22, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // 中心の光点
+      // 中心点
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.arc(x, y, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      // ラベル（「光源（動かせる）」）
-      drawBadge(x, y + 56, '光源（指で動かせる）', '#ca8a04', '#ffffff', 21, '#fef08a');
+      // ラベル（文字表示ONのときのみ、光線が通る右下側を避けて「左外側」に配置）
+      if (showLabels) {
+        drawBadge(x - 78, y, '光源', '#ca8a04', '#ffffff', 20, '#fef08a');
+      }
 
       ctx.restore();
     }
 
     // 鏡に映った「像（虚像）」の描画
     function drawVirtualImage(x, y, appearProgress) {
-      if (appearProgress <= 0) return;
+      if (!isLightActive || appearProgress <= 0) return;
 
       ctx.save();
       ctx.globalAlpha = appearProgress;
 
-      // 出現時のスケール演出
-      const scale = 0.7 + 0.3 * Math.sin(appearProgress * Math.PI * 0.5);
+      const scale = 0.75 + 0.25 * Math.sin(appearProgress * Math.PI * 0.5);
       ctx.translate(x, y);
       ctx.scale(scale, scale);
 
-      // 像の淡いピンク〜シアン系の後光
-      const grad = ctx.createRadialGradient(0, 0, 6, 0, 0, 56);
+      // 像の後光
+      const grad = ctx.createRadialGradient(0, 0, 6, 0, 0, 52);
       grad.addColorStop(0, 'rgba(244, 114, 182, 0.75)');
       grad.addColorStop(0.5, 'rgba(250, 204, 21, 0.3)');
       grad.addColorStop(1, 'rgba(244, 114, 182, 0)');
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(0, 0, 56, 0, Math.PI * 2);
+      ctx.arc(0, 0, 52, 0, Math.PI * 2);
       ctx.fill();
 
-      // ソケット下部（点線枠で「実体ではない虚像」を表現）
+      // ソケット上部
       ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
       ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(-12, 16, 24, 14, 4);
+      ctx.roundRect(-11, -30, 22, 12, 4);
       ctx.fill();
       ctx.stroke();
 
-      // 像のガラス球体（点線＋半透明で虚像らしさを強調）
+      // 像のガラス球体（点線枠）
       ctx.fillStyle = 'rgba(254, 240, 138, 0.65)';
       ctx.strokeStyle = '#f472b6';
       ctx.lineWidth = 4;
       ctx.setLineDash([6, 4]);
       ctx.beginPath();
-      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       ctx.setLineDash([]);
@@ -594,36 +596,37 @@
       // 中心点
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.restore();
 
-      // 像のラベル
-      ctx.save();
-      ctx.globalAlpha = appearProgress;
-      drawBadge(x, y + 56, '鏡に映った「像」', '#be185d', '#ffffff', 23, '#fbcfe8');
-      ctx.restore();
+      // 像のラベル（文字表示ONのときのみ、延長線が来る左下側を避けて「右外側」に配置）
+      if (showLabels) {
+        ctx.save();
+        ctx.globalAlpha = appearProgress;
+        drawBadge(x + 78, y, '像', '#be185d', '#ffffff', 20, '#fbcfe8');
+        ctx.restore();
+      }
     }
 
-    // 観察者の「目」の描画（鏡の方向を向く）
+    // 観察者の「目」の描画
     function drawObserverEye(ex, ey, targetX, targetY, isReceivingLight) {
       const angle = Math.atan2(targetY - ey, targetX - ex);
 
       ctx.save();
       ctx.translate(ex, ey);
 
-      // 目に光が届いたときのキラキラ演出
-      if (isReceivingLight) {
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+      if (isLightActive && isReceivingLight) {
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
         ctx.beginPath();
-        ctx.arc(0, 0, 44, 0, Math.PI * 2);
+        ctx.arc(0, 0, 42, 0, Math.PI * 2);
         ctx.fill();
       }
 
       ctx.rotate(angle);
 
-      // 白目（横から見た目の形）
+      // 白目
       ctx.fillStyle = '#f8fafc';
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 3.5;
@@ -636,7 +639,7 @@
       ctx.fill();
       ctx.stroke();
 
-      // 黒目（瞳）
+      // 瞳
       ctx.fillStyle = '#0284c7';
       ctx.beginPath();
       ctx.ellipse(18, 0, 8, 13, 0, 0, Math.PI * 2);
@@ -647,7 +650,6 @@
       ctx.ellipse(20, 0, 4.5, 8, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 瞳のハイライト
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(17, -4, 3, 0, Math.PI * 2);
@@ -655,35 +657,41 @@
 
       ctx.restore();
 
-      // 「目」のラベル
-      drawBadge(ex, ey + 48, '観察する「目」', '#1e293b', '#e2e8f0', 22, '#64748b');
+      // 「目」のラベル（文字表示ONのときのみ、光線が来る右上側を避けて「左外側」に配置）
+      if (showLabels) {
+        drawBadge(ex - 72, ey, '目', '#1e293b', '#e2e8f0', 20, '#64748b');
+      }
     }
 
     // 光線と延長線・反射アニメーションの描画
     function drawLightRays(sx, sy, rx, ry, ex, ey, ix, iy) {
+      if (!isLightActive) {
+        // 光が出ていないときも、「対称の線を引く」がONなら補助線を表示できるようにする
+        if (showSymmetryGuide) {
+          drawSymmetryGuide(sx, sy, ix, iy, 1.0);
+        }
+        return { p2: 0, p4: 0 };
+      }
+
       // 各ステップの進行度 (0.0 〜 1.0)
       const p1 = Math.max(0, Math.min(1, animProgress / 0.25));               // Step 1: 光源 → 鏡
       const p2 = Math.max(0, Math.min(1, (animProgress - 0.25) / 0.25));      // Step 2: 鏡 → 目
-      const p3 = Math.max(0, Math.min(1, (animProgress - 0.50) / 0.30));      // Step 3: 延長線（目/鏡 → 像）
-      const p4 = Math.max(0, Math.min(1, (animProgress - 0.80) / 0.20));      // Step 4: 対称ガイドと像の出現
+      const p3 = Math.max(0, Math.min(1, (animProgress - 0.50) / 0.30));      // Step 3: 延長線（鏡 → 像）
+      const p4 = Math.max(0, Math.min(1, (animProgress - 0.80) / 0.20));      // Step 4: 像の出現
 
-      // --------------------------------------------------
-      // Step 4 の対称ガイド（線の背面に描画）
-      // --------------------------------------------------
-      if (p4 > 0) {
-        drawSymmetryGuide(sx, sy, ix, iy, p4);
+      // 対称ガイドの描画
+      if (showSymmetryGuide) {
+        drawSymmetryGuide(sx, sy, ix, iy, 1.0);
       }
 
-      // --------------------------------------------------
-      // 鏡の法線（点線）と反射点のハイライト
-      // --------------------------------------------------
+      // 鏡の法線（点線）
       if (p1 >= 0.95) {
         ctx.save();
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)';
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
-        ctx.moveTo(mirrorX - 75, ry);
+        ctx.moveTo(mirrorX - 70, ry);
         ctx.lineTo(mirrorX, ry);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -709,12 +717,10 @@
         ctx.stroke();
         ctx.restore();
 
-        // 進行方向の矢印
         if (p1 > 0.55) {
-          drawDirectionArrow(sx, sy, rx, ry, 0.52, '#fde047', 17);
+          drawDirectionArrow(sx, sy, rx, ry, 0.52, '#fde047', 16);
         }
 
-        // 進行中の先端の光球
         if (p1 < 1.0) {
           drawGlowingPhoton(curX, curY, '#fef08a');
         }
@@ -739,18 +745,17 @@
         ctx.stroke();
         ctx.restore();
 
-        // 進行方向の矢印
         if (p2 > 0.55) {
-          drawDirectionArrow(rx, ry, ex, ey, 0.52, '#fde047', 17);
+          drawDirectionArrow(rx, ry, ex, ey, 0.52, '#fde047', 16);
         }
 
         // 反射点の輝き
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 14;
         ctx.beginPath();
-        ctx.arc(rx, ry, 7, 0, Math.PI * 2);
+        ctx.arc(rx, ry, 6.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
@@ -780,38 +785,25 @@
         ctx.setLineDash([]);
         ctx.restore();
 
-        // 延長線の説明ラベル
-        if (p3 > 0.6) {
-          const midExtX = (rx + ix) / 2;
-          const midExtY = (ry + iy) / 2;
-          drawBadge(midExtX, midExtY + 34, '目に入った光の延長線', '#831843', '#fbcfe8', 19, '#f472b6');
-        }
-
         if (p3 < 1.0) {
           drawGlowingPhoton(curX, curY, '#f472b6');
         }
       }
 
       // --------------------------------------------------
-      // 完了後（またはドラッグ中）も光の進む順番がわかる常時パルス演出
+      // 完了後も光の進む向きがわかる、ゆっくりした光粒パルス演出
       // --------------------------------------------------
       if (animProgress >= 1.0) {
-        // pulseTime (0.0 〜 1.0) に応じて、光の玉が「光源 → 鏡 → 目 → (延長線)」を走る
-        if (pulseTime < 0.35) {
-          const t = pulseTime / 0.35;
+        if (pulseTime < 0.45) {
+          const t = pulseTime / 0.45;
           const px = sx + (rx - sx) * t;
           const py = sy + (ry - sy) * t;
-          drawGlowingPhoton(px, py, '#ffffff');
-        } else if (pulseTime < 0.70) {
-          const t = (pulseTime - 0.35) / 0.35;
+          drawGlowingPhoton(px, py, '#ffffff', 8);
+        } else if (pulseTime < 0.90) {
+          const t = (pulseTime - 0.45) / 0.45;
           const px = rx + (ex - rx) * t;
           const py = ry + (ey - ry) * t;
-          drawGlowingPhoton(px, py, '#ffffff');
-        } else {
-          const t = (pulseTime - 0.70) / 0.30;
-          const px = rx + (ix - rx) * t;
-          const py = ry + (iy - ry) * t;
-          drawGlowingPhoton(px, py, '#fbcfe8', 8);
+          drawGlowingPhoton(px, py, '#ffffff', 8);
         }
       }
 
@@ -823,7 +815,7 @@
       ctx.save();
       ctx.fillStyle = color;
       ctx.shadowColor = color;
-      ctx.shadowBlur = 18;
+      ctx.shadowBlur = 16;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
@@ -839,20 +831,18 @@
       const centerY = height / 2;
 
       // 1. 座標計算
-      // 光源 S
       const sx = mirrorX + sourceRelX;
       const sy = centerY + sourceRelY;
 
-      // 像 I（鏡に対して光源と完全に線対称の位置）
-      const ix = mirrorX - sourceRelX; // mirrorX + |sourceRelX|
+      // 像 I（鏡に対して光源と線対称の位置）
+      const ix = mirrorX - sourceRelX;
       const iy = sy;
 
       // 目 E
       const ex = mirrorX + eyeRelX;
       const ey = centerY + eyeRelY;
 
-      // 鏡の上の反射点 R（目 E と 像 I を結ぶ直線と鏡 x = mirrorX の交点）
-      // これにより常に入射角＝反射角が成り立つ
+      // 鏡の上の反射点 R
       const ratioR = (mirrorX - ex) / (ix - ex);
       const rx = mirrorX;
       const ry = ey + (iy - ey) * ratioR;
@@ -875,23 +865,26 @@
       // 7. 目の描画
       drawObserverEye(ex, ey, rx, ry, p2 >= 0.95);
 
-      // 8. アニメーション進行更新
-      if (isAnimatingProcess) {
-        animProgress += animSpeed;
-        if (animProgress >= 1.0) {
-          animProgress = 1.0;
-          isAnimatingProcess = false;
+      // 8. アニメーション進行更新（ゆっくり進行）
+      if (isLightActive) {
+        if (isAnimatingProcess) {
+          animProgress += animSpeed;
+          if (animProgress >= 1.0) {
+            animProgress = 1.0;
+            isAnimatingProcess = false;
+          }
+          updateStatusUI();
+        } else {
+          // 完了後の光の粒もゆっくり移動させる
+          pulseTime = (pulseTime + 0.0035) % 1.0;
         }
-        updateStatusUI();
-      } else {
-        pulseTime = (pulseTime + 0.008) % 1.0;
       }
 
       requestAnimationFrame(render);
     }
 
     // ==========================================
-    // タッチ＆マウス操作イベント（iPad完全対応）
+    // タッチ＆マウス操作イベント（iPad対応）
     // ==========================================
     function getPointerPos(e) {
       const rect = canvas.getBoundingClientRect();
@@ -911,24 +904,19 @@
       const sx = mirrorX + sourceRelX;
       const sy = height / 2 + sourceRelY;
       const dist = Math.hypot(px - sx, py - sy);
-      return dist <= 68; // iPadで指で触れやすいよう大きめの判定半径
+      return dist <= 65;
     }
 
     function onPointerDown(e) {
       const pos = getPointerPos(e);
       if (isPointOnSource(pos.x, pos.y)) {
         isDraggingSource = true;
+        pointerDownX = pos.x;
+        pointerDownY = pos.y;
         const sx = mirrorX + sourceRelX;
         const sy = height / 2 + sourceRelY;
         dragOffsetX = sx - pos.x;
         dragOffsetY = sy - pos.y;
-
-        // ドラッグ開始時は全体（像と延長線）が見える状態にしてリアルタイム連動を確認しやすくする
-        animProgress = 1.0;
-        isAnimatingProcess = false;
-        updateStatusUI();
-        statusIcon.textContent = '👆';
-        statusText.textContent = '光源を動かすと、鏡に対して「対称の位置」にある像も一緒に動きます！';
       }
     }
 
@@ -948,11 +936,30 @@
       }
     }
 
-    function onPointerUp() {
+    function onPointerUp(e) {
       if (isDraggingSource) {
         isDraggingSource = false;
-        pulseTime = 0; // 指を離した瞬間、光源から光パルスがスッと走る
-        updateStatusUI();
+
+        // ほとんど動かさずに光源をポンとタップした場合は、光源スイッチとして光を出す
+        let upX = pointerDownX;
+        let upY = pointerDownY;
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          const rect = canvas.getBoundingClientRect();
+          upX = e.changedTouches[0].clientX - rect.left;
+          upY = e.changedTouches[0].clientY - rect.top;
+        } else if (e.clientX !== undefined) {
+          const rect = canvas.getBoundingClientRect();
+          upX = e.clientX - rect.left;
+          upY = e.clientY - rect.top;
+        }
+
+        const moveDist = Math.hypot(upX - pointerDownX, upY - pointerDownY);
+        if (moveDist < 10 && !isLightActive) {
+          startLightAnimation();
+        } else {
+          pulseTime = 0;
+          updateStatusUI();
+        }
       }
     }
 
@@ -965,17 +972,21 @@
     window.addEventListener('touchmove', onPointerMove, { passive: false });
     window.addEventListener('touchend', onPointerUp);
 
-    // 「光の進み方を最初から見る」ボタン
-    playBtn.addEventListener('click', () => {
-      animProgress = 0.0;
-      isAnimatingProcess = true;
-      updateStatusUI();
+    // 「光源から光を出す」ボタン
+    emitLightBtn.addEventListener('click', () => {
+      startLightAnimation();
     });
 
-    // ステップボタン（1〜4の段階をタップして確認可能）
+    // 「光を消す」ボタン
+    clearLightBtn.addEventListener('click', () => {
+      clearLight();
+    });
+
+    // ステップボタン（1〜4の段階をタップして止めて見ることも可能）
     stepButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         const step = parseInt(btn.getAttribute('data-step'), 10);
+        isLightActive = true;
         isAnimatingProcess = false;
         if (step === 1) animProgress = 0.24;
         if (step === 2) animProgress = 0.49;
@@ -985,25 +996,40 @@
       });
     });
 
-    // 「対称の距離を表示」ON/OFFボタン
+    // 「文字・解説を表示」ON/OFFボタン（デフォルトはOFF）
+    toggleTextBtn.addEventListener('click', () => {
+      showLabels = !showLabels;
+      textCheck.textContent = showLabels ? '☑' : '☐';
+      if (showLabels) {
+        statusBanner.classList.remove('hidden');
+        statusBanner.classList.add('flex');
+        toggleTextBtn.classList.replace('text-slate-300', 'text-amber-300');
+        toggleTextBtn.classList.replace('border-slate-600', 'border-amber-400/70');
+      } else {
+        statusBanner.classList.add('hidden');
+        statusBanner.classList.remove('flex');
+        toggleTextBtn.classList.replace('text-amber-300', 'text-slate-300');
+        toggleTextBtn.classList.replace('border-amber-400/70', 'border-slate-600');
+      }
+    });
+
+    // 「対称の線を引く」ON/OFFボタン（デフォルトはOFF）
     toggleSymmetryBtn.addEventListener('click', () => {
       showSymmetryGuide = !showSymmetryGuide;
       symCheck.textContent = showSymmetryGuide ? '☑' : '☐';
       if (showSymmetryGuide) {
-        toggleSymmetryBtn.classList.replace('text-slate-400', 'text-cyan-300');
-        toggleSymmetryBtn.classList.replace('border-slate-600', 'border-cyan-500/60');
+        toggleSymmetryBtn.classList.replace('text-slate-300', 'text-cyan-300');
+        toggleSymmetryBtn.classList.replace('border-slate-600', 'border-cyan-500/70');
       } else {
-        toggleSymmetryBtn.classList.replace('text-cyan-300', 'text-slate-400');
-        toggleSymmetryBtn.classList.replace('border-cyan-500/60', 'border-slate-600');
+        toggleSymmetryBtn.classList.replace('text-cyan-300', 'text-slate-300');
+        toggleSymmetryBtn.classList.replace('border-cyan-500/70', 'border-slate-600');
       }
     });
 
-    // 「元の位置に戻す」リセットボタン
+    // 「位置リセット」ボタン
     resetBtn.addEventListener('click', () => {
       setInitialPositions();
-      animProgress = 0.0;
-      isAnimatingProcess = true;
-      updateStatusUI();
+      clearLight();
     });
 
     // ウィンドウリサイズ対応
